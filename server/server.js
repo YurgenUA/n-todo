@@ -1,4 +1,5 @@
 const {mongoose} = require('./db/mongoose');
+const {ObjectId} = require('mongodb');
 const {Todo} = require('./models/todo');
 const {User} = require('./models/user');
 const express = require('express');
@@ -28,6 +29,26 @@ app.get('/todos', (req, res) => {
         res.status(400).send(e);
     })
 });
+
+app.get('/todos/:id', (req, res) => {
+    //req.params.id
+
+    //check if id is ObjectId
+    if (!ObjectId.isValid(req.params.id)){
+        res.status(400).send('Not valid ObjectId');
+    }
+
+    Todo.findById(req.params.id)
+    .then(o => {
+        if (!o) {
+            res.status(404);
+        }
+        res.send({todo:o});
+    })
+    .catch(e => {
+        res.status(500).send(e);
+    })
+})
 
 app.listen(3000, () => {
     console.log('started on port 3000');
