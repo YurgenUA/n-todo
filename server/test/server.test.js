@@ -3,10 +3,17 @@ const request = require('supertest');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {ObjectId} = require('mongodb');
 
 const TestTodos = [
-    {text: '1st test'},
-    {text: '2nd test'}
+    {
+        _id: new ObjectId(),
+        text: '1st test'
+    },
+    {
+        text: '2nd test',
+        _id: new ObjectId()
+    }
 ]
 
 beforeEach(done => {
@@ -31,6 +38,36 @@ describe('GET /todos', () => {
                 done();
         });
 
+    });
+});
+
+describe('GET /todos/:id', () => {
+    it('should return valid todo', done => {
+        request(app)
+        .get(`/todos/${TestTodos[0]._id}`)
+        .expect(200)
+        .expect(res => {
+            expect(res._id).toBe(TestTodos[0]._id);
+        })
+        .end(() => {
+            done();
+        })
+    });
+
+    it('should return 404 not found', done => {
+        request(app)
+        .get(`/todos/${new ObjectId()}`)
+        .expect(404)
+        .end(done);
+    });
+    
+    it('should return 400 if not object sent', done => {
+        request(app)
+        .get(`/todos/444`)
+        .expect(400)
+        .end((err, res) => {
+            done(err);
+        })
     });
 });
 
