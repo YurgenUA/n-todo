@@ -32,9 +32,7 @@ app.get('/todos', (req, res) => {
 });
 
 app.get('/todos/:id', (req, res) => {
-    //req.params.id
-
-    //check if id is ObjectId
+     //check if id is ObjectId
     if (!ObjectId.isValid(req.params.id)){
         return res.status(400).send({});
     }
@@ -49,7 +47,26 @@ app.get('/todos/:id', (req, res) => {
     .catch(e => {
         res.status(500).send(e);
     })
-})
+});
+
+app.delete('/todos/:id', (req, res) => {
+    //check if id is ObjectId
+   if (!ObjectId.isValid(req.params.id)){
+       return res.status(400).send({});
+   }
+
+   Todo.findByIdAndRemove(req.params.id)
+   .then(o => {
+       if (!o) {
+           return res.status(404).send({});
+       }
+       res.send({todo:o});
+   })
+   .catch(e => {
+       res.status(500).send(e);
+   })
+});
+
 
 app.listen(port, () => {
     console.log(`started on port ${port}`);
