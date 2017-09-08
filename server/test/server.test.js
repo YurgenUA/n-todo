@@ -115,3 +115,37 @@ describe('POST /todos', () => {
     });
     
 });
+
+describe('DELETE /todos/:id', () => {
+    it('should delete todo', done => {
+        request(app)
+        .delete(`/todos/${TestTodos[1]._id}`)
+        .expect(200)
+        .expect(res => {
+            expect(res._id).toBe(TestTodos[1]._id);
+        })
+        .end(() => {
+            Todo.findById(TestTodos[1]._id).then(todo =>{
+                expect(todo).toNotExist();
+                done();
+            }).catch(err => done(err));    
+
+        })
+    });
+
+    it('should return 404 not found', done => {
+        request(app)
+        .delete(`/todos/${new ObjectId()}`)
+        .expect(404)
+        .end(done);
+    });
+    
+    it('should return 400 if id is invalid', done => {
+        request(app)
+        .delete(`/todos/444`)
+        .expect(400)
+        .end((err, res) => {
+            done(err);
+        })
+    });    
+});
