@@ -12,7 +12,9 @@ const TestTodos = [
     },
     {
         text: '2nd test',
-        _id: new ObjectId()
+        _id: new ObjectId(),
+        completed: true,
+        completedAt: 333
     }
 ]
 
@@ -115,6 +117,40 @@ describe('POST /todos', () => {
     });
     
 });
+
+describe('PATCH /todos/:id', () => {
+    it('should update todo', done => {
+        request(app)
+        .patch(`/todos/${TestTodos[0]._id}`)
+        .send({text: 'updated text', completed: true})
+        .expect(200)
+        .expect(res => {
+            expect(res.body.todo.completed).toBe(true);
+            expect(res.body.todo.text).toBe('updated text');
+    
+        }) 
+        .end(done);
+    });
+
+    it('should clear completedAt when todo is not completed', done => {
+        request(app)
+        .patch(`/todos/${TestTodos[1]._id}`)
+        .send({text: 'updated text', completed: false})
+        .expect(200)
+        .end((err, res) => {
+            if (err) {
+                return done(err);
+            }
+            expect(res.body.todo.completed).toBe(false);
+            expect(res.body.todo.text).toBe('updated text');
+            expect(res.body.todo.completedAt).toNotExist();
+            
+            return done();
+        });
+    });
+    
+});
+    
 
 describe('DELETE /todos/:id', () => {
     it('should delete todo', done => {
