@@ -110,13 +110,15 @@ app.post('/users', (req, res) => {
         _.pick(req.body, ['email', 'password'])
     );
 
-    console.log(user);
+    console.log('saving user', user);
     user.save().then(user => {
-        res.send(user);
-    }, 
-    e => {
+        return user.GenerateAuthToken();
+    }).then(token => {
+        console.log(token);
+        res.header('x-auth', token).send(user);
+    }).catch(e => {
         res.status(400).send(e);
-    })
+    });
 });
 
 app.listen(port, () => {
