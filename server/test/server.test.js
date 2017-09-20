@@ -4,25 +4,11 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 const {ObjectId} = require('mongodb');
+const {TestTodos, Populate} = require('./seed/seed')
 
-const TestTodos = [
-    {
-        _id: new ObjectId(),
-        text: '1st test'
-    },
-    {
-        text: '2nd test',
-        _id: new ObjectId(),
-        completed: true,
-        completedAt: 333
-    }
-]
 
-beforeEach(done => {
-    Todo.remove({})
-    .then(() => Todo.insertMany(TestTodos))
-    .then(() => done());
-})
+
+beforeEach(Populate);
 
 
 describe('GET /todos', () => {
