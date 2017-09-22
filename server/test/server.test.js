@@ -4,7 +4,7 @@ const request = require('supertest');
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
 const {ObjectId} = require('mongodb');
-const {TestTodos, Populate} = require('./seed/seed')
+const {TestTodos, TestUsers, Populate} = require('./seed/seed')
 
 
 
@@ -35,7 +35,7 @@ describe('GET /todos/:id', () => {
         .get(`/todos/${TestTodos[0]._id}`)
         .expect(200)
         .expect(res => {
-            expect(res._id).toBe(TestTodos[0]._id);
+            expect(res.body._id.ToString()).toBe(TestTodos[0]._id.ToString());
         })
         .end(() => {
             done();
@@ -166,8 +166,75 @@ describe('DELETE /todos/:id', () => {
         request(app)
         .delete(`/todos/444`)
         .expect(400)
-        .end((err, res) => {
-            done(err);
-        })
+        .end(done)
     });    
+});
+
+
+describe('GET /users/me', () => {
+
+    it('should return user if authenticated', done => {
+        request(app)
+        .get('/users/me')
+        .set('x-auth', TestUsers[0].tokens[0].token)
+        .expect(200)
+        .expect(res => {
+            expect(res.body._id).toBe(TestUsers[0]._id.toHexString());
+            expect(res.body.email).toBe(TestUsers[0].email);
+        })
+        .end(done)
+    });
+
+    it('should return 401 if not authenticated', done =>{
+        request(app)
+        .get('/users/me')
+        .expect(401)
+        .expect(res => {
+            expect(res.body).toEqual({});
+        })
+        .end(done)
+    });
+
+});
+
+describe('POST /users', () => {
+
+    it('should create user', done => {
+        let email = 'example@example.com';
+        let password = '123frtg!!';
+
+        request(app)
+        .post('/users')
+        .send({email, password})
+        .expect(200)
+        .expect(res => {
+            expect(res.headers['x-auth']).toExist();
+            expect(res.body._id).toExist();
+            expect(res.body.email).toBe(email);
+
+        })
+        .end(done)
+
+    });
+
+    it('should return validation errors if request invalid', done => {
+        request(app)
+        .post('/users')
+        .send({email: 'email', password: '123'})
+        .expect(400)
+
+        .end(done);
+
+    });
+
+    it('should not create if email in use', done => {
+        request(app)
+        .post('/users')
+        .send({email: 'one@example.com', password: '123'})
+        .expect(400)
+
+        .end(done);
+    });
+
+
 });

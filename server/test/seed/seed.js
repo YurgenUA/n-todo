@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const user1Id = new ObjectId();
 const user2Id = new ObjectId();
-const TestUses = [
+const TestUsers = [
     {
         _id: user1Id,
         email: 'one@example.com',
@@ -45,8 +45,8 @@ const Populate = done => {
     .then(() => Todo.insertMany(TestTodos))
     .then(() => {return User.remove({})})
     .then(() =>{
-        let user1 = new User(TestUses[0]).save();
-        let user2 = new User(TestUses[1]).save();
+        let user1 = new User(TestUsers[0]).save();
+        let user2 = new User(TestUsers[1]).save();
         return Promise.all([user1, user2]);
     } )
     .then(() => done());
@@ -54,5 +54,6 @@ const Populate = done => {
 
 module.exports = {
     TestTodos,
+    TestUsers,
     Populate
 }
