@@ -10,7 +10,7 @@ const TestUsers = [
     {
         _id: user1Id,
         email: 'one@example.com',
-        pass: '1pass',
+        password: '1pass',
         tokens: [
             {
                 access:'auth',
@@ -21,7 +21,7 @@ const TestUsers = [
     {
         _id: user2Id,
         email: 'two@example.com',
-        pass: '2pass',
+        password: '2pass',
 
     }
 ]

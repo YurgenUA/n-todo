@@ -3,6 +3,7 @@ const request = require('supertest');
 
 const {app} = require('./../server');
 const {Todo} = require('./../models/todo');
+const {User} = require('./../models/user');
 const {ObjectId} = require('mongodb');
 const {TestTodos, TestUsers, Populate} = require('./seed/seed')
 
@@ -238,3 +239,64 @@ describe('POST /users', () => {
 
 
 });
+
+describe('POST /users/login', () => {
+    it ('should login user and return token', done => {
+        request(app)
+        .post('/users/login')
+        .send({
+            email: TestUsers[1].email,
+            password: TestUsers[1].password
+        })
+        .expect(200)
+        .expect(res => {
+            expect(res.headers['x-auth']).toExist();
+        })
+        .end((err, res) => {
+            if (err){
+                return done(err);
+            }
+            User.findById(TestUsers[1]._id)
+            .then(user => {
+                if (!user){
+                    return done('no user found in collecion');
+                }
+
+                expect(user.tokens[0]).toInclude({
+                    access: 'auth',
+                    token: res.headers['x-auth']
+                })
+            })
+
+            done();
+        });
+    });
+
+    it ('should reject invalid login', done => {
+        request(app)
+        .post('/users/login')
+        .send({
+            email: TestUsers[1].email,
+            password: 'invalid'
+        })
+        .expect(400)
+        .expect(res => {
+            expect(res.headers['x-auth']).toNotExist();
+        })
+        .end((err, res) => {
+            if (err){
+                return done(err);
+            }
+            User.findById(TestUsers[1]._id)
+            .then(user => {
+                if (!user){
+                    return done('no user found in collecion');
+                }
+
+                expect(user.tokens.length).toBe(0);
+            })
+
+            done();
+        });
+    });    
+})
