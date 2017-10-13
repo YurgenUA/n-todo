@@ -16,15 +16,16 @@ describe('GET /todos', () => {
     it('should create a new todo', (done)=> {
         request(app)
         .get('/todos')
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .expect(200)
         .expect( res => {
-            expect(res.body.todos.length).toBe(2);
+            expect(res.body.todos.length).toBe(1);
         })
         .end((err, res) => {
             if(err){
                 return done(err);
             }
-                done();
+            done();
         });
 
     });
@@ -34,18 +35,26 @@ describe('GET /todos/:id', () => {
     it('should return valid todo', done => {
         request(app)
         .get(`/todos/${TestTodos[0]._id}`)
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .expect(200)
         .expect(res => {
-            expect(res.body._id.ToString()).toBe(TestTodos[0]._id.ToString());
+            expect(res.body.todo._id.toString()).toBe(TestTodos[0]._id.toString());
         })
-        .end(() => {
-            done();
-        })
+        .end(done);
+    });
+
+    it('should not return todo created by other user', done => {
+        request(app)
+        .get(`/todos/${TestTodos[1]._id}`)
+        .set('x-auth', TestUsers[0].tokens[0].token)
+        .expect(404)
+        .end(done)
     });
 
     it('should return 404 not found', done => {
         request(app)
         .get(`/todos/${new ObjectId()}`)
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .expect(404)
         .end(done);
     });
@@ -53,6 +62,7 @@ describe('GET /todos/:id', () => {
     it('should return 400 if not object sent', done => {
         request(app)
         .get(`/todos/444`)
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .expect(400)
         .end((err, res) => {
             done(err);
@@ -64,10 +74,10 @@ describe('POST /todos', () => {
 
     it('should create a new todo', (done)=> {
         var text = "todo test";
-
         request(app)
         .post('/todos')
-        .send({text})
+        .send({text : text})
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .expect(200)
         .expect( res => {
             expect(res.body.text).toBe(text);
@@ -89,6 +99,7 @@ describe('POST /todos', () => {
         request(app)
         .post('/todos')
         .send({})
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .expect(400)
         .end((err, res) => {
             if(err){
@@ -109,6 +120,7 @@ describe('PATCH /todos/:id', () => {
     it('should update todo', done => {
         request(app)
         .patch(`/todos/${TestTodos[0]._id}`)
+        .set('x-auth', TestUsers[0].tokens[0].token)
         .send({text: 'updated text', completed: true})
         .expect(200)
         .expect(res => {
@@ -122,6 +134,7 @@ describe('PATCH /todos/:id', () => {
     it('should clear completedAt when todo is not completed', done => {
         request(app)
         .patch(`/todos/${TestTodos[1]._id}`)
+        .set('x-auth', TestUsers[1].tokens[0].token)
         .send({text: 'updated text', completed: false})
         .expect(200)
         .end((err, res) => {
@@ -143,6 +156,7 @@ describe('DELETE /todos/:id', () => {
     it('should delete todo', done => {
         request(app)
         .delete(`/todos/${TestTodos[1]._id}`)
+        .set('x-auth', TestUsers[1].tokens[0].token)
         .expect(200)
         .expect(res => {
             expect(res._id).toBe(TestTodos[1]._id);
@@ -159,6 +173,7 @@ describe('DELETE /todos/:id', () => {
     it('should return 404 not found', done => {
         request(app)
         .delete(`/todos/${new ObjectId()}`)
+        .set('x-auth', TestUsers[1].tokens[0].token)
         .expect(404)
         .end(done);
     });
@@ -166,6 +181,7 @@ describe('DELETE /todos/:id', () => {
     it('should return 400 if id is invalid', done => {
         request(app)
         .delete(`/todos/444`)
+        .set('x-auth', TestUsers[1].tokens[0].token)
         .expect(400)
         .end(done)
     });    
@@ -262,7 +278,7 @@ describe('POST /users/login', () => {
                     return done('no user found in collecion');
                 }
 
-                expect(user.tokens[0]).toInclude({
+                expect(user.tokens[1]).toInclude({
                     access: 'auth',
                     token: res.headers['x-auth']
                 })
@@ -309,7 +325,7 @@ describe('POST /users/login', () => {
             .set('x-auth', TestUsers[0].tokens[0].token)
             .expect(200)
             .end((err, res) => {
-                User.findById(TestUsers[0]._id)
+                return User.findById(TestUsers[0]._id)
                 .then(user => {
                     expect(user.tokens.length).toBe(0);
                     done();

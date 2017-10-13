@@ -22,6 +22,12 @@ const TestUsers = [
         _id: user2Id,
         email: 'two@example.com',
         password: '2pass',
+        tokens: [
+            {
+                access:'auth',
+                token: jwt.sign({_id: user2Id, access: 'auth'}, 'abc123').toString()
+            }
+        ]
 
     }
 ]
@@ -29,13 +35,16 @@ const TestUsers = [
 const TestTodos = [
     {
         _id: new ObjectId(),
-        text: '1st test'
+        text: '1st test',
+        _creator: user1Id
     },
     {
         text: '2nd test',
         _id: new ObjectId(),
         completed: true,
-        completedAt: 333
+        completedAt: 333,
+        _creator : user2Id
+
     }
 ]
 
